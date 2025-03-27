@@ -9,7 +9,7 @@
 			"request": "launch",
 			"name": "Launch",
 			"program": "${workspaceFolder}/pipex",
-			"args": ["Makefile", "ls", "wc", "outfil"],
+			"args": ["Makefile", "", "wc", "outfil"],
 			"cwd": "${workspaceFolder}"
 		},
 		{
@@ -17,7 +17,7 @@
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/pipex",
-			"args": ["Makefile", "ls", "wc", "output"],
+			"args": ["Makefile", "", "wc", "output"],
 			"stopAtEntry": false,
 			"cwd": "${fileDirname}",
 			"environment": [],

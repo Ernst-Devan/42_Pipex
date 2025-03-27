@@ -13,6 +13,7 @@ CCFLAGS 		?=	-Wall -Werror -Wextra
 SRCS		=	pipex.c		\
 				parsing.c	\
 				init.c		\
+				errors.c	\
 
 OBJS		= $(SRCS:.c=.o)
 
@@ -58,7 +59,6 @@ debug:
 
 .PHONY: re
 re:	fclean all
-	$(MAKE) re -C libs/Libft
 
 $(OBJ_D):
 	mkdir -p $(OBJ_D)

@@ -6,7 +6,7 @@
 /*   By: dernst <dernst@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 10:37:54 by dernst            #+#    #+#             */
-/*   Updated: 2025/03/25 16:11:49 by dernst           ###   ########lyon.fr   */
+/*   Updated: 2025/03/26 15:05:28 by dernst           ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,9 @@ typedef struct s_fd
 	int fd_out;
 }	t_fd;
 
+t_args 	init_arg();
 t_fd	init_fd(char **av);
 t_args	parsing(char **argv);
+void	exit_free(t_args args, int error);
 
 #endif
