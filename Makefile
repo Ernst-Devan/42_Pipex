@@ -21,9 +21,7 @@ DEPS		= $(OBJS:.o=.d)
 SRC_D		=	srcs/
 OBJ_D		=	objs/
 INC_D		=	-Iincludes \
-				-Ilibs/Libft/includes
-LIBS_D		=	-Ilibs/Libft
-
+				-ILibft/includes
 
 # =======================================
 # Objets Files
@@ -31,14 +29,14 @@ LIBS_D		=	-Ilibs/Libft
 
 .PHONY: all
 all: 
-	$(MAKE) -C libs/Libft
+	$(MAKE) -C Libft
 	$(MAKE) $(NAME)
 
 OBJS	:= $(addprefix $(OBJ_D), $(OBJS))
 SRCS	:= $(addprefix $(SRC_D), $(SRCS))
 
 $(NAME):$(OBJS)
-	$(CC) $(CCFLAGS) $(INC_D) $(OBJS) -lm libs/Libft/libft.a -o $@
+	$(CC) $(CCFLAGS) $(INC_D) $(OBJS) -lm Libft/libft.a -o $@
 
 $(OBJ_D)%.o: $(SRC_D)%.c | $(OBJ_D)
 	$(CC) $(CCFLAGS) $(INC_D) -c $< -o $@
@@ -46,13 +44,13 @@ $(OBJ_D)%.o: $(SRC_D)%.c | $(OBJ_D)
 .PHONY: clean
 clean:
 	rm -rf $(OBJ_D)
-	$(MAKE) clean -C libs/Libft
+	$(MAKE) clean -C Libft
 
 .PHONY: fclean
 fclean: clean
 	rm -f $(NAME)
 	rm -f libft.a
-	$(MAKE) fclean -C libs/Libft
+	$(MAKE) fclean -C Libft
 
 .PHONY: debug
 debug:
