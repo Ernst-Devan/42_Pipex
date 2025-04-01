@@ -6,7 +6,7 @@
 /*   By: dernst <dernst@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:22:50 by dernst            #+#    #+#             */
-/*   Updated: 2025/03/26 15:05:58 by dernst           ###   ########lyon.fr   */
+/*   Updated: 2025/04/01 13:45:21 by dernst           ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,36 +14,45 @@
 #include "stdlib.h"
 #include "libft.h"
 
-//! echo $? To check the good return 126 (Pipe fails for exemple) search online
-//! Ft_split not in norm
-
-void	exit_free(t_args args, int error)
+void	cleanup_split(char **splited_str)
 {
 	int	i;
 
 	i = 0;
-	if (args.arg1)
+	if (splited_str)
 	{
-		while (args.arg1[i])
+		while (splited_str[i] != NULL)
 		{
-			free(args.arg1[i]);
+			free(splited_str[i]);
 			i++;
 		}
-		free(args.arg1);
+		if (splited_str)
+			free(splited_str);
 	}
-	i = 0;
+}
+
+void	close_fd(t_fd fd, int *pipefd)
+{
+	if (fd.fd_in)
+		close(fd.fd_in);
+	if (fd.fd_out)
+		close(fd.fd_out);
+	if (pipefd[0])
+		close(pipefd[0]);
+	if (pipefd[1])
+		close(pipefd[1]);
+}
+
+void	exit_free(t_args args, int error, t_fd fd, int *pipefd)
+{
+	close_fd(fd, pipefd);
+	if (args.arg1)
+		if (args.command1 != args.arg1[0])
+			free(args.command1);
 	if (args.arg2)
-	{
-		while (args.arg2[i])
-			{
-				free(args.arg2[i]);
-				i++;
-			}
-	}
-		free(args.arg2);
-	if (args.command1)
-		free(args.command1);
-	if (args.command2)
-		free(args.command2);
+		if (args.command2 != args.arg2[0])
+			free(args.command2);
+	cleanup_split(args.arg1);
+	cleanup_split(args.arg2);
 	exit(error);
 }

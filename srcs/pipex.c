@@ -6,90 +6,77 @@
 /*   By: dernst <dernst@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/21 09:11:03 by dernst            #+#    #+#             */
-/*   Updated: 2025/03/27 10:51:30 by dernst           ###   ########lyon.fr   */
+/*   Updated: 2025/04/01 15:03:54 by dernst           ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
-//! Segfault when args are empty if command are empty we need to insert the content of file 1 inside output file
-//! echo $? To check the good return 126 (Pipe fails for exemple) search online
-
-#include "libft.h"
 #include "unistd.h"
 #include <sys/wait.h>
-#include <fcntl.h>
 #include "pipex.h"
 #include <errno.h>
 
-void	manage_parent(int *status)
+void	manage_first_command(t_fd fd, int *pipefd, t_args args)
 {
-	int	end_pid;
-
-	end_pid = 0;
-	while (1)
-	{
-		end_pid = waitpid(end_pid, status, 0);
-		ft_printf("%d \n", end_pid);
-		if (end_pid < 0)
-			break ;
-	}
-}
-int	 *manage_child(t_fd fd, int *pipefd, t_args args, int index, int *status)
-{
-	if (index == 0)
-	{
-		if (dup2(fd.fd_in, STDIN_FILENO) < 0)
-			exit_free(args, 1);
-		if (dup2(pipefd[1], STDOUT_FILENO) < 0)
-			exit_free(args, 1);
-		close(fd.fd_in);
+	close(pipefd[0]);
+	if (dup2(fd.fd_in, STDIN_FILENO) < 0)
+		exit_free(args, 1, fd, pipefd);
+	if (dup2(pipefd[1], STDOUT_FILENO) < 0)
+		exit_free(args, 1, fd, pipefd);
+	close(fd.fd_in);
+	close(fd.fd_out);
+	close(pipefd[1]);
+	if (args.command1)
 		execve(args.command1, args.arg1, NULL);
-	}
-	else
-	{
-		if (dup2(pipefd[0], STDIN_FILENO) < 0)
-			exit_free(args, 1);
-		if (dup2(fd.fd_out, STDOUT_FILENO) < 0)
-			exit_free(args, 1);
-		execve(args.command2, args.arg2, NULL);
-		
-	}
-	*status = ENOENT;
-	return (status);
 }
 
-void	manage_fork(t_fd fd, int *pipefd, t_args args, int index, int *status)
+void	manage_second_command(t_fd fd, int *pipefd, t_args args)
 {
-	int	pid;
-	
-	pid = fork();
-	if (pid < 0)
-		exit_free(args, EAGAIN);
-	else if (pid == 0)
-		manage_child(fd, pipefd, args, index, status);
+	close(pipefd[1]);
+	if (dup2(pipefd[0], STDIN_FILENO) < 0)
+		exit_free(args, 1, fd, pipefd);
+	if (dup2(fd.fd_out, STDOUT_FILENO) < 0)
+		exit_free(args, 1, fd, pipefd);
+	close(pipefd[0]);
+	close(fd.fd_in);
+	close(fd.fd_out);
+	execve(args.command2, args.arg2, NULL);
 }
 
-int	main(int ac, char **av)
+void	pipex(t_args args, t_fd fd, int *pipefd, int fd_error)
+{
+	int	pid1;
+	int	pid2;
+	int	status;
+
+	pid1 = fork();
+	if (pid1 == 0)
+		manage_first_command(fd, pipefd, args);
+	else if (pid1 < 0)
+		exit_free(args, EAGAIN, fd, pipefd);
+	pid2 = fork();
+	if (pid2 == 0)
+		manage_second_command(fd, pipefd, args);
+	else if (pid2 < 0)
+		exit_free(args, EAGAIN, fd, pipefd);
+	close_fd(fd, pipefd);
+	while (wait(&status) != -1)
+		continue ;
+	if (fd_error == 1)
+		exit_free(args, 1, fd, pipefd);
+	exit_free(args, WEXITSTATUS(status), fd, pipefd);
+}
+
+int	main(int ac, char **av, char **env)
 {
 	t_args	args;
 	t_fd	fd;
-	int		index;
+	int		fd_error;
 	int		pipefd[2];
-	int		status;
 
 	if (ac != 5)
 		return (1);
-	fd = init_fd(av);
-	args = parsing(av);
-	status = 0;
-	if (pipe(pipefd) < 0)
-		exit_free(args, EPIPE);
-	index = 0;
-	manage_fork(fd, pipefd, args, index, &status);
-	index = 1;
-	close(pipefd[1]);
-	manage_fork(fd, pipefd, args, index, &status);
-	manage_parent(&status);
-	close(pipefd[0]);
-	exit_free(args, 0);
+	fd_error = 0;
+	fd = init_fd(av, &fd_error);
+	args = parsing(av, get_env_path(env), fd, pipefd);
+	pipex(args, fd, pipefd, fd_error);
 }
-
